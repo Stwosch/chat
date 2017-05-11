@@ -23,9 +23,9 @@
 }
 
 .chat-warning {
+    color: #D8000C;
     background-color: #FFBABA;
     padding: 10px 20px;
-    border-bottom: 1px #ccc solid;
 }
 
 .chat-line:nth-child(even) {
@@ -65,4 +65,10 @@ textarea {
 
 .invalid {
     border-color: #FF0061;
+}
+
+.error-msg {
+    padding: 10px;
+    border-radius: 3px;
+    
 }

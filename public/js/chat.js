@@ -29,16 +29,12 @@
         let nickName = $.trim( nick.val() );
 
         if(nickName === "") {
+
             nick.addClass("invalid");
         } else {
+
             nick.removeClass("invalid");
-
             socket.emit('join', nickName);
-
-            joinForm.hide();
-            chatForm.show();
-
-            joined = true;
         }
 
     });
@@ -50,6 +46,36 @@
         let message = $.trim( chatMessage.val() );
 
         sendingMessage(message);
+
+    });
+
+    socket.on('join', function(data) {
+
+        if(data.success) {
+
+            joinForm.hide();
+            chatForm.show();
+
+            joined = true;
+
+        } else {
+
+            let html = '<p class="chat-warning">' + data.status + '</p>';
+
+            joinForm.append(html);
+        }  
+
+    });
+
+    socket.on('warning', function(data) {
+
+        const html = chatWarningTpl({
+            warning: data.warning,
+            time: formatTime(data.time)
+        });
+
+        chatWindow.append(html);
+        scrollToBottom();
 
     });
 
