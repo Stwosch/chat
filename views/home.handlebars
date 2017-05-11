@@ -4,25 +4,25 @@
 
 <form id="join-form" action="#">
     <div class="form-group row">
-        <label class="col-xs-2 col-form-label" for="nickname">Podaj nick</label>
+        <label class="col-xs-2 col-form-label" for="nickname">Enter nickname</label>
         <div class="col-xs-6">
             <input id="nick" class="form-control" type="text">
         </div>
         <dic class="col-xs-4">
-            <button class="btn btn-primary">Dołącz</button>
+            <button type="submit" class="btn btn-primary">Join</button>
         </dic>
     </div>
-</form>
+</form> 
 
 <form id="chat-form" action="#">
     <div id="chat-window" class="chat-window">
     </div>
 
     <div class="form-group">
-        <textarea id="message" rows="7" class="form-control" placeholder="Twoja wiadomość..."></textarea>
+        <textarea id="message" rows="7" class="form-control" placeholder="Your message.."></textarea>
     </div>
     <div class="form-group">
-        <button class="btn btn-primary pull-xs-right">Wyślij</button>
+        <button type="submit" class="btn btn-primary pull-xs-right">Send</button>
     </div>
 </form>
 
@@ -39,5 +39,12 @@
     <div class="chat-line-time">\{{ time }}</div>
     <div class="chat-line-nick">\{{ nick }}</div>
     <div class="chat-line-status">\{{ status }}</div>
+</div>
+</script>
+
+<script id="chat-warning-template" type="text/x-handlebars-template">
+<div class="chat-warning">
+    <div class="chat-line-time">\{{ time }}</div>
+    <div class="chat-line-status">\{{ warning }}</div>
 </div>
 </script>

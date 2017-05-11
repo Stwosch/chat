@@ -1,3 +1,5 @@
+const namesUsed = [];
+
 function init(io) {
 
 	io.on('connection', function(socket) {
@@ -8,15 +10,15 @@ function init(io) {
 
 			io.emit('status', {
 				time: Date.now(),
-				status: nick + " dołączył do czatu."
+				status: nick + " joined to the room."
 			});
-		});
+		}); 
 
 		socket.on('disconnect', function() {
 
 			io.emit('status', {
 				time: Date.now(),
-				status: socket.nick + " opuścił czat."
+				status: socket.nick + " left the room."
 			});
 
 		});
@@ -27,6 +29,18 @@ function init(io) {
 				time: Date.now(),
 				nick: socket.nick,
 				status: msg
+			});
+
+		});
+
+		socket.on('changenick', function(newNick) {
+
+			let oldNick = socket.nick;
+			socket.nick = newNick;
+
+			io.emit('status', {
+				time: Date.now(),
+				status: oldNick + " has changed nick to " + newNick
 			});
 
 		});

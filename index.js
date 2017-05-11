@@ -14,7 +14,7 @@ app.use( express.static("public") );
 app.get("/", function(req, res) {
 
     res.render("home", {
-        title: "Czat grupowy",
+        title: "Chat",
         styles: [
             "bootstrap.css",
             "custom.css"
@@ -31,7 +31,7 @@ app.get("/", function(req, res) {
 
 server.listen(process.env.PORT || 8080, function() {
 
-    console.log("Serwer został uruchomiony.");
+    console.log("Server listening on port 8080.");
 
 });
 

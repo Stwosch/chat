@@ -22,6 +22,12 @@
     border-bottom: 1px #ccc solid;
 }
 
+.chat-warning {
+    background-color: #FFBABA;
+    padding: 10px 20px;
+    border-bottom: 1px #ccc solid;
+}
+
 .chat-line:nth-child(even) {
     background-color: #FAFAFA;
 }
