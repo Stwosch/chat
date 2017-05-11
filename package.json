@@ -13,5 +13,8 @@
     "express": "^4.14.0",
     "express-handlebars": "^3.0.0",
     "socket.io": "^1.4.8"
+  },
+  "devDependencies": {
+    "xss": "^0.3.3"
   }
 }

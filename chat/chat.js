@@ -1,10 +1,13 @@
+const xss = require('xss');
 const users = [];
 
 function init(io) {
 
 	io.on('connection', function(socket) {
 
-		socket.on('join', function(nick) {
+		socket.on('join', function(nick, room) {
+
+			nick = xss(nick);
 
 			const result = users.find(function(user) {
 				return user.nick === nick;
@@ -29,7 +32,11 @@ function init(io) {
 					success: true
 				});
 
-				io.emit('status', {
+				socket.join(room);
+
+				socket.room = room;
+
+				io.to(room).emit('status', {
 					time: Date.now(),
 					status: nick + " joined to the room."
 				});
@@ -40,7 +47,7 @@ function init(io) {
 
 		socket.on('disconnect', function() {
 
-			io.emit('status', {
+			io.to(socket.room).emit('status', {
 				time: Date.now(),
 				status: socket.nick + " left the room."
 			});
@@ -55,7 +62,7 @@ function init(io) {
 
 		socket.on('message', function(msg) {
 
-			io.emit('message', {
+			io.to(socket.room).emit('message', {
 				time: Date.now(),
 				nick: socket.nick,
 				status: msg
@@ -93,7 +100,7 @@ function init(io) {
 				});
 
 
-				io.emit('status', {
+				io.to(socket.room).emit('status', {
 					time: Date.now(),
 					status: oldNick + " has changed nick to " + newNick
 				});

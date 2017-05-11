@@ -28,13 +28,13 @@
 
         let nickName = $.trim( nick.val() );
 
-        if(nickName === "") {
+        if(nickName.length < 2 || nickName.length > 20) {
 
             nick.addClass("invalid");
         } else {
 
             nick.removeClass("invalid");
-            socket.emit('join', nickName);
+            socket.emit('join', nickName, 'Lobby');
         }
 
     });
@@ -129,10 +129,10 @@
 
             case "chnick": 
 
-                if(commandOptions.length !== 2) {
+                if(commandOptions.length !== 2 || commandOptions[1].length < 2 || commandOptions[1].length > 20) {
 
                     const html = chatWarningTpl({
-                        warning: "You used wrong number of parameters. Command '/" + commandType + "' needs 1 parameter.",
+                        warning: "You are not using the command correctly.",
                         time: formatTime(Date.now())
                     });
 
