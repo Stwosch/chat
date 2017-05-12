@@ -1,17 +1,16 @@
-const express = require("express");
-const app = express();
-const server = require("http").Server(app);
-const hbs = require("express-handlebars");
-const chat = require("./chat");
-
-const io = require("socket.io")(server);
+const express = require("express"),
+    app = express(),
+    server = require("http").Server(app),
+    hbs = require("express-handlebars"),
+    chat = require("./chat"),
+    io = require("socket.io")(server);
 
 app.engine("handlebars", hbs({defaultLayout: "main"}));
 app.set("view engine", "handlebars");
 
-app.use( express.static("public") );
+app.use(express.static("public"));
 
-app.get("/", function(req, res) {
+app.get("/", (req, res) =>  {
 
     res.render("home", {
         title: "Chat",
@@ -26,13 +25,8 @@ app.get("/", function(req, res) {
             "chat.js"
         ]
     });
-
 });
 
-server.listen(process.env.PORT || 8080, function() {
-
-    console.log("Server listening on port 8080.");
-
-});
+server.listen(process.env.PORT || 8080, () => console.log("Server listening on port 8080."));
 
 chat(io);

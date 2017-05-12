@@ -2,17 +2,33 @@
 
     const socket = io.connect(),
         joinForm = $("#join-form"),
+        roomName = $(".usersInRoom-header"),
         nick = $("#nick"),
         chatForm = $("#chat-form"),
         chatWindow = $("#chat-window"),
+        changeNickForm = $("#changeNick-form"),
+        changeRoomForm = $("#changeRoom-form"),
         chatMessage = $("#message"),
+        newNickname = $('#changeNick-newNick'),
+        newRoomname = $('#changeRoom-newRoom'),
+        chat = $("#chat"),
+        listUsers = $('.usersInRoom-list'),
         chatStatusTpl = Handlebars.compile($('#chat-status-template').html()),
         chatMessageTpl = Handlebars.compile($('#chat-message-template').html()),
-        chatWarningTpl = Handlebars.compile($('#chat-warning-template').html());
+        chatWarningTpl = Handlebars.compile($('#chat-warning-template').html()),
+        listUsersTpl = Handlebars.compile($('#user-inroom-template').html());
 
     let joined = false;
+    /*
+    socket.on('notifyToGetAllUsers', function() {
+        socket.emit('getAllUsers');
+    });
 
-    chatMessage.keypress(function(e) {
+    socket.on('getAllUsers', function(users) {
+        console.log(users);
+    });
+*/
+    chatMessage.keypress(e => {
 
         if(e.keyCode != 13) return;
 
@@ -22,39 +38,93 @@
     });
 
 
-    joinForm.on("submit", function(e) {
+    joinForm.on("submit", e => {
 
         e.preventDefault();
 
-        let nickName = $.trim( nick.val() );
+        const nickName = validDataFromUser(nick.val(), 2, 25);
 
-        if(nickName.length < 2 || nickName.length > 20) {
-
-            nick.addClass("invalid");
-        } else {
+        if(nickName) {
 
             nick.removeClass("invalid");
             socket.emit('join', nickName, 'Lobby');
+            
+        } else {
+
+            nick.addClass("invalid");
         }
 
     });
 
-    chatForm.on("submit", function(e) {
+    chatForm.on("submit", e => {
 
         e.preventDefault();
 
-        let message = $.trim( chatMessage.val() );
+        const message = validDataFromUser(chatMessage.val(), 0);
 
-        sendingMessage(message);
+        if(!message) return;
+
+        socket.emit('message', message);
+
+        chatMessage.val("");
 
     });
 
-    socket.on('join', function(data) {
+    changeNickForm.on("submit", e => {
+
+        e.preventDefault();
+
+        const newNick = validDataFromUser(newNickname.val(), 2, 15);
+
+        if(newNick) {
+
+            socket.emit('changenick', newNick);
+
+        } else {
+
+            const html = chatWarningTpl({
+                warning: "You use the wrong amount of characters.",
+                time: formatTime(Date.now())
+            });
+
+            chatWindow.append(html);
+        }
+
+        newNickname.val("");
+
+    });
+
+    changeRoomForm.on("submit", e => {
+
+        e.preventDefault();
+
+        const newRoom = validDataFromUser(newRoomname.val(), 2, 15);
+
+        if(newRoom) {
+
+            socket.emit('changeroom', newRoom);
+
+        } else {
+
+            const html = chatWarningTpl({
+                warning: "You use the wrong amount of characters.",
+                time: formatTime(Date.now())
+            });
+
+            chatWindow.append(html);
+            return;
+        }
+
+        newRoomname.val("");
+
+    });
+
+    socket.on('join', data => {
 
         if(data.success) {
 
             joinForm.hide();
-            chatForm.show();
+            chat.show();
 
             joined = true;
 
@@ -67,7 +137,7 @@
 
     });
 
-    socket.on('warning', function(data) {
+    socket.on('warning', data => {
 
         const html = chatWarningTpl({
             warning: data.warning,
@@ -79,7 +149,7 @@
 
     });
 
-    socket.on('status', function(data) {
+    socket.on('status', data => {
         
         if(!joined) return;
 
@@ -89,10 +159,12 @@
         });
 
         chatWindow.append(html);
+        socket.emit('generateUsersList'); 
+
         scrollToBottom();
     });
 
-    socket.on('message', function(data) {
+    socket.on('message', data => {
 
         if(!joined) return;
        
@@ -106,54 +178,32 @@
         scrollToBottom();
     });
 
-    function sendingMessage(message) {
+    socket.on('changeroom', data => roomName.text(data.room));
 
-        if(message[0] === "/") {
-
-            callCommand(message);
-
-        } else if(message !== "") {
+    socket.on('generateUsersList', data => {
         
-            socket.emit('message', message);
-        }
+        let html = "";
 
-        chatMessage.val("");
-    }
+        data.forEach(user => {
 
-    function callCommand(command) {
+            html += listUsersTpl({
+                nick: user.nick
+            });
 
-        let commandOptions = command.split(" ");
-        let commandType = commandOptions[0].slice(1); // Removing "/"
+        });
 
-        switch(commandType) { 
+        listUsers.html(html);
+    });
 
-            case "chnick": 
+    function validDataFromUser(data, minLength, maxLength) {
 
-                if(commandOptions.length !== 2 || commandOptions[1].length < 2 || commandOptions[1].length > 20) {
+        data = $.trim(data);
 
-                    const html = chatWarningTpl({
-                        warning: "You are not using the command correctly.",
-                        time: formatTime(Date.now())
-                    });
+        if(data.length < minLength) return false;
+        
+        if(maxLength && maxLength < data.length) return false;
 
-                    chatWindow.append(html);
-                    return;
-                }
-
-                socket.emit('changenick', commandOptions[1]);
-
-            break;
-
-            default:
-
-                const html = chatWarningTpl({
-                    warning: "This command doesn't exist",
-                    time: formatTime(Date.now())
-                });
-
-                chatWindow.append(html);
-
-        }
+        return data;
     }
 
     function scrollToBottom() {

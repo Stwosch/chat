@@ -1,66 +1,89 @@
 const xss = require('xss');
-const users = [];
 
 function init(io) {
 
-	io.on('connection', function(socket) {
+	const users = [];
 
-		socket.on('join', function(nick, room) {
+	io.on('connection', socket => {
 
-			nick = xss(nick);
+		socket.on('join', nick => {
 
-			const result = users.find(function(user) {
-				return user.nick === nick;
-			});
+			nick = validDataFromUser(nick);
+			const room = 'Lobby';
 
-			if(result) {
+			// Check nick is free
+
+			const nickUsed = users.find(user =>  user.nick === nick);
+
+			// Nick already used, choose other
+
+			if(nickUsed) {
 
 				io.to(socket.id).emit('join', {
 					success: false,
 					status: nick + " is used. Choose other nickname."
 				});
 
-			} else {
+				return;
+			} 
 
-				socket.nick = nick;
-				users.push({
-					id: socket.id,
-					nick: socket.nick
-				});
+			// Assign nick and add to users array
+
+			socket.nick = nick;
+
+			users.push({
+				nick: socket.nick,
+				room: room
+			});
+
+			// Get index from users array
+
+			const usersIndex = users.findIndex(user => user.nick === socket.nick);
+
+			socket.usersIndex = usersIndex;
+
+			// Joining to chat
 				
-				io.to(socket.id).emit('join', {
-					success: true
-				});
+			socket.join(room);
+			socket.room = room;
+			users[socket.usersIndex].room = room
 
-				socket.join(room);
+			socket.broadcast.to(socket.room).emit('status', {
+				time: Date.now(),
+				status: socket.nick + " joined to the room."	
+			});
 
-				socket.room = room;
+			// Response successful
 
-				io.to(room).emit('status', {
-					time: Date.now(),
-					status: nick + " joined to the room."
-				});
+			io.to(socket.id).emit('join', {
+				success: true
+			});
 
-			}
+			// Get users list and notify yourself
+
+			io.to(socket.id).emit('status', {
+				time: Date.now(),
+				status: "You have joined to chat."
+			});
 
 		}); 
 
-		socket.on('disconnect', function() {
+		socket.on('disconnect', () => {
+
+			// Notify others you left
 
 			io.to(socket.room).emit('status', {
 				time: Date.now(),
 				status: socket.nick + " left the room."
 			});
 
-			let index = users.findIndex(function(user){
-				return user.nick === socket.nick;
-			});
+			// Remove from users array
 
-			users.splice(index, 1);
+			users.splice(socket.usersIndex, 1);
 
 		});
 
-		socket.on('message', function(msg) {
+		socket.on('message', msg => {
 
 			io.to(socket.room).emit('message', {
 				time: Date.now(),
@@ -70,11 +93,60 @@ function init(io) {
 
 		});
 
-		socket.on('changenick', function(newNick) {
+		socket.on('changeroom', room => {
 
-			const result = users.find(function(user) {
-				return user.nick === newNick;
+			room = validDataFromUser(room);
+
+			// Check is it the same room
+
+			if(socket.room === room) return;
+
+			// Notify others you left
+
+			socket.broadcast.to(socket.room).emit('status', {
+				time: Date.now(),
+				status: socket.nick + " changed the room."	
 			});
+
+			// Leave, join, save informations
+
+			socket.leave(socket.room);
+			socket.join(room);
+			socket.room = room;
+
+			users[socket.usersIndex].room = room;
+
+			// Notify others you joined
+			
+			socket.broadcast.to(socket.room).emit('status', {
+				time: Date.now(),
+				status: socket.nick + " joined to the room."	
+			});
+
+			// Notify yourself
+
+			io.to(socket.id).emit('status', {
+				time: Date.now(),
+				status: "You changed to the '" + socket.room + "' room."	
+			});
+
+			// Change bilboard
+			
+			io.to(socket.id).emit('changeroom', {
+				room: socket.room
+			});
+
+		});
+
+		socket.on('changenick', newNick => {
+
+			newNick = xss(newNick);
+
+			// Check is it free
+
+			const result = users.find(user => user.nick === newNick);
+
+			// Notify yourself that you can't use this nick
 
 			if(result) {
 
@@ -83,33 +155,39 @@ function init(io) {
 					time: Date.now()
 				});
 
-			} else {
+				return;
+			} 
 
-				let oldNick = socket.nick;
-				socket.nick = newNick;
+			// Change informations
 
-				let index = users.findIndex(function(user){
-					return user.nick === oldNick;
-				});
+			const oldNick = socket.nick;
+			socket.nick = newNick;
 
-				users.splice(index, 1);
+			users[socket.usersIndex].nick = socket.nick;
 
-				users.push({
-					id: socket.id,
-					nick: socket.nick
-				});
+			// Notify others
 
+			io.to(socket.room).emit('status', {
+				time: Date.now(),
+				status: oldNick + " has changed nick to " + newNick
+			});
 
-				io.to(socket.room).emit('status', {
-					time: Date.now(),
-					status: oldNick + " has changed nick to " + newNick
-				});
+		});
 
-			}
+		socket.on('generateUsersList', () => {
+
+			const usersInRoom = users.filter(user => socket.room === user.room);
+
+			io.to(socket.id).emit('generateUsersList', usersInRoom);
 
 		});
 
 	});
+
+	function validDataFromUser(data) {
+
+		return xss(data);
+	}
 
 }
 

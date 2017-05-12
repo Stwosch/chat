@@ -1,30 +1,57 @@
 <div class="page-header">
-    <h2>{{ title }}</h2>
+    <h2 id="room-name">{{ title }}</h2>
 </div>
 
-<form id="join-form" action="#">
+<form id="join-form" action="#" class="container">
     <div class="form-group row">
         <label class="col-xs-2 col-form-label" for="nickname">Enter nickname</label>
         <div class="col-xs-6">
             <input id="nick" class="form-control" type="text">
         </div>
-        <dic class="col-xs-4">
+        <div class="col-xs-4">
             <button type="submit" class="btn btn-primary">Join</button>
-        </dic>
+        </div>
     </div>
 </form> 
-
-<form id="chat-form" action="#">
-    <div id="chat-window" class="chat-window">
+<div id="chat">
+    <div class="col-xs-2">
+        <h2 class="usersInRoom-header">Lobby</h2>
+        <div class="usersInRoom-list"></div>
     </div>
 
-    <div class="form-group">
-        <textarea id="message" rows="7" class="form-control" placeholder="Your message.."></textarea>
+    <form id="chat-form" action="#" class="col-xs-7">
+        <div id="chat-window" class="chat-window">
+        </div>
+
+        <div class="form-group">
+            <textarea id="message" rows="7" class="form-control" placeholder="Your message.."></textarea>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary pull-xs-right">Send</button>
+        </div>
+    </form>
+
+    <div class="col-xs-3 userInterface">
+        <form id="changeNick-form" class="userInterface-item" action="#">
+            <h3 class="userInterface-item-header">Change nick</h3>
+            <div class="input-group">
+                <input type="text" class="form-control" id="changeNick-newNick">
+                <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit">Change</button>
+                </span>
+            </div>
+        </form>
+        <form id="changeRoom-form" class="userInterface-item" action="#">
+            <h3 class="userInterface-item-header">Change room</h3>
+            <div class="input-group">
+                <input type="text" class="form-control" id="changeRoom-newRoom">
+                <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit">Go</button>
+                </span>
+            </div>
+        </form>
     </div>
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary pull-xs-right">Send</button>
-    </div>
-</form>
+</div>
 
 
 <script id="chat-status-template" type="text/x-handlebars-template">
@@ -47,4 +74,8 @@
     <div class="chat-line-time">\{{ time }}</div>
     <div class="chat-line-status">\{{ warning }}</div>
 </div>
+</script>
+
+<script id="user-inroom-template" type="text/x-handlebars-template">
+    <div class="chat-line">\{{ nick }}</div>
 </script>

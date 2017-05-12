@@ -8,6 +8,41 @@
     line-height: 2.3;
 }
 
+.userInterface-item-header {
+    margin-top: 0;
+}
+
+.userInterface {
+    border-radius: 4px;
+    border: 1px #ccc solid;
+}
+
+.userInterface-item {
+    padding: 20px 0;
+    border-bottom: 1px #ccc solid;
+}
+
+.userInterface-item:last-child {
+    border-bottom: 0;
+}
+
+
+.usersInRoom-header {
+    border: 1px #ccc solid;
+    border-bottom: 0;
+    border-radius: 4px 4px 0 0;
+    margin: 0;
+    padding: 10px;
+}
+
+.usersInRoom-list {
+    height: 300px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    border-radius: 0 0 4px 4px;
+    border: 1px #ccc solid;
+}
+
 .chat-window {
     height: 400px;
     margin-bottom: 15px;
@@ -59,7 +94,7 @@ textarea {
     float: right;
 }
 
-#chat-form {
+#chat {
     display: none;
 }
 
