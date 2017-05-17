@@ -1,8 +1,13 @@
-const xss = require('xss');
+const xss = require('xss'),
+	User = require('./User.class'),
+	Room = require('./Room.class');
 
 function init(io) {
 
-	const users = [];
+	const users = [],
+		rooms= [
+			new Room('Lobby', 0)
+		];
 
 	io.on('connection', socket => {
 
@@ -27,26 +32,26 @@ function init(io) {
 				return;
 			} 
 
+			// Add one more user in Lobby
+
+			const index = rooms.findIndex(room => room.name === 'Lobby');
+
+			rooms[index].numberOfUsers += 1;
+
 			// Assign nick and add to users array
 
 			socket.nick = nick;
-
-			users.push({
-				nick: socket.nick,
-				room: room
-			});
+			users.push(new User(socket.id, socket.nick, room));
 
 			// Get index from users array
 
 			const usersIndex = users.findIndex(user => user.nick === socket.nick);
-
 			socket.usersIndex = usersIndex;
 
 			// Joining to chat
 				
 			socket.join(room);
 			socket.room = room;
-			users[socket.usersIndex].room = room
 
 			socket.broadcast.to(socket.room).emit('status', {
 				time: Date.now(),
@@ -66,7 +71,37 @@ function init(io) {
 				status: "You have joined to chat."
 			});
 
+			// Get rooms list
+
+			io.emit('getRoomsList');
+
 		}); 
+
+		socket.on('generateRoomsList', () => {
+
+			// Get rooms with users
+
+			const availableRooms = rooms.filter(room => room.numberOfUsers > 0);
+
+			// Always get Lobby
+
+			if(availableRooms) {
+
+				const lobby = availableRooms.find(aRoom => aRoom.name === 'Lobby');
+
+				if(lobby === undefined) {
+				 	
+					 availableRooms.unshift(new Room('Lobby', 0));
+				} 
+
+			} else {
+
+				availableRooms.unshift(new Room('Lobby', 0));
+			}
+
+			io.emit('generateRoomsList', availableRooms);
+
+		});
 
 		socket.on('disconnect', () => {
 
@@ -80,6 +115,25 @@ function init(io) {
 			// Remove from users array
 
 			users.splice(socket.usersIndex, 1);
+
+			// Remove from room array
+
+			const index = rooms.findIndex(room => room.name === socket.room);
+
+			if(index === undefined || index === -1) return;
+
+			if(rooms[index].numberOfUsers <= 1 && rooms[index].name !== 'Lobby') {
+
+				rooms.splice(index, 1);
+
+			} else {
+
+				rooms[index].numberOfUsers -= 1;
+			}
+
+			// Get room list
+
+			io.emit('getRoomsList');
 
 		});
 
@@ -110,6 +164,10 @@ function init(io) {
 
 			// Leave, join, save informations
 
+			rooms.push(new Room(room, 0));
+
+			changeRoom(socket.room, room);
+
 			socket.leave(socket.room);
 			socket.join(room);
 			socket.room = room;
@@ -135,6 +193,10 @@ function init(io) {
 			io.to(socket.id).emit('changeroom', {
 				room: socket.room
 			});
+
+			// Get rooms list
+
+			io.emit('getRoomsList');
 
 		});
 
@@ -183,6 +245,25 @@ function init(io) {
 		});
 
 	});
+
+	function changeRoom(from, to) {
+
+		const indexFrom = rooms.findIndex(room => room.name === from);
+		
+		if(rooms[indexFrom].numberOfUsers > 1 || rooms[indexFrom].name === 'Lobby') {
+
+			rooms[indexFrom].numberOfUsers -= 1;
+
+		} else if(rooms[indexFrom].name !== 'Lobby') {
+
+			rooms.splice(indexFrom, 1);
+
+		}
+
+		const indexTo = rooms.findIndex(room => room.name === to);
+		rooms[indexTo].numberOfUsers += 1;
+
+	}
 
 	function validDataFromUser(data) {
 

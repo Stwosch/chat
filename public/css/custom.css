@@ -13,6 +13,7 @@
 }
 
 .userInterface {
+    padding: 0 15px;
     border-radius: 4px;
     border: 1px #ccc solid;
 }
@@ -26,8 +27,11 @@
     border-bottom: 0;
 }
 
+.smallContainer {
+    margin-bottom: 20px;
+}
 
-.usersInRoom-header {
+.smallContainer-header {
     border: 1px #ccc solid;
     border-bottom: 0;
     border-radius: 4px 4px 0 0;
@@ -35,7 +39,7 @@
     padding: 10px;
 }
 
-.usersInRoom-list {
+.smallContainer-list {
     height: 300px;
     overflow-x: hidden;
     overflow-y: scroll;
@@ -55,6 +59,15 @@
 .chat-line {
     padding: 10px 20px;
     border-bottom: 1px #ccc solid;
+}
+
+.room-name {
+    font-weight: bold;
+    display: inline-block;
+}
+
+.btn-join {
+    transform: translateY(-7.5px);
 }
 
 .chat-warning {

@@ -2,32 +2,26 @@
 
     const socket = io.connect(),
         joinForm = $("#join-form"),
-        roomName = $(".usersInRoom-header"),
+        currentRoom = $("#currentRoom"),
         nick = $("#nick"),
         chatForm = $("#chat-form"),
         chatWindow = $("#chat-window"),
         changeNickForm = $("#changeNick-form"),
-        changeRoomForm = $("#changeRoom-form"),
+        createRoomForm = $("#createRoom-form"),
         chatMessage = $("#message"),
         newNickname = $('#changeNick-newNick'),
-        newRoomname = $('#changeRoom-newRoom'),
+        newRoomname = $('#createRoom-newRoom'),
         chat = $("#chat"),
-        listUsers = $('.usersInRoom-list'),
+        usersList = $('#usersList'),
+        roomsList = $('#roomsList'),
         chatStatusTpl = Handlebars.compile($('#chat-status-template').html()),
         chatMessageTpl = Handlebars.compile($('#chat-message-template').html()),
         chatWarningTpl = Handlebars.compile($('#chat-warning-template').html()),
-        listUsersTpl = Handlebars.compile($('#user-inroom-template').html());
+        usersListTpl = Handlebars.compile($('#user-list-template').html()),
+        roomListTpl = Handlebars.compile($('#room-list-template').html());
 
     let joined = false;
-    /*
-    socket.on('notifyToGetAllUsers', function() {
-        socket.emit('getAllUsers');
-    });
 
-    socket.on('getAllUsers', function(users) {
-        console.log(users);
-    });
-*/
     chatMessage.keypress(e => {
 
         if(e.keyCode != 13) return;
@@ -37,6 +31,14 @@
 
     });
 
+
+    roomsList.on('click', e => {
+
+        if(!e.target.className.includes('btn-join')) return;
+
+        socket.emit('changeroom', e.target.id);
+
+    });
 
     joinForm.on("submit", e => {
 
@@ -94,7 +96,7 @@
 
     });
 
-    changeRoomForm.on("submit", e => {
+    createRoomForm.on("submit", e => {
 
         e.preventDefault();
 
@@ -178,7 +180,26 @@
         scrollToBottom();
     });
 
-    socket.on('changeroom', data => roomName.text(data.room));
+    socket.on('getRoomsList', () => socket.emit('generateRoomsList'));
+
+    socket.on('generateRoomsList', data => {
+        
+        let html = "";
+        
+        data.forEach(room => {
+
+            html += roomListTpl({
+                name: room.name,
+                number: room.numberOfUsers
+            });
+
+        });
+
+        roomsList.html(html);
+
+    });
+
+    socket.on('changeroom', data => currentRoom.text(data.room));
 
     socket.on('generateUsersList', data => {
         
@@ -186,13 +207,13 @@
 
         data.forEach(user => {
 
-            html += listUsersTpl({
+            html += usersListTpl({
                 nick: user.nick
             });
 
         });
 
-        listUsers.html(html);
+        usersList.html(html);
     });
 
     function validDataFromUser(data, minLength, maxLength) {

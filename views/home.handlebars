@@ -15,8 +15,8 @@
 </form> 
 <div id="chat">
     <div class="col-xs-2">
-        <h2 class="usersInRoom-header">Lobby</h2>
-        <div class="usersInRoom-list"></div>
+        <h2 class="smallContainer-header" id="currentRoom">Lobby</h2>
+        <div class="smallContainer-list" id="usersList"></div>
     </div>
 
     <form id="chat-form" action="#" class="col-xs-7">
@@ -31,25 +31,31 @@
         </div>
     </form>
 
-    <div class="col-xs-3 userInterface">
-        <form id="changeNick-form" class="userInterface-item" action="#">
-            <h3 class="userInterface-item-header">Change nick</h3>
-            <div class="input-group">
-                <input type="text" class="form-control" id="changeNick-newNick">
-                <span class="input-group-btn">
+    <div class="col-xs-3 ">
+        <div class="smallContainer">
+            <h2 class="smallContainer-header">All available rooms</h2>
+            <div class="smallContainer-list" id="roomsList"></div>
+        </div>
+        <div class="userInterface">
+            <form id="changeNick-form" class="userInterface-item" action="#">
+                <h3 class="userInterface-item-header">Change nick</h3>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="changeNick-newNick">
+                    <span class="input-group-btn">
                         <button class="btn btn-default" type="submit">Change</button>
-                </span>
-            </div>
-        </form>
-        <form id="changeRoom-form" class="userInterface-item" action="#">
-            <h3 class="userInterface-item-header">Change room</h3>
-            <div class="input-group">
-                <input type="text" class="form-control" id="changeRoom-newRoom">
-                <span class="input-group-btn">
+                    </span>
+                </div>
+            </form>
+            <form id="createRoom-form" class="userInterface-item" action="#">
+                <h3 class="userInterface-item-header">Change room</h3>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="createRoom-newRoom">
+                    <span class="input-group-btn">
                         <button class="btn btn-default" type="submit">Go</button>
-                </span>
-            </div>
-        </form>
+                    </span>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -76,6 +82,14 @@
 </div>
 </script>
 
-<script id="user-inroom-template" type="text/x-handlebars-template">
+<script id="user-list-template" type="text/x-handlebars-template">
     <div class="chat-line">\{{ nick }}</div>
+</script>
+
+<script id="room-list-template" type="text/x-handlebars-template">
+    <div class="chat-line">
+        <div class="room-name">\{{ name }}</div>
+        <div class="chat-line-time">\{{ number }}</div>
+        <button type="button" class="btn btn-success btn-small pull-right btn-join" id="\{{ name }}">Join</button>
+    </div>
 </script>
