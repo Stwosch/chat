@@ -7,5 +7,5 @@ This is my real-time chat application, that uses mainly:
 - Bootstrap 
 - Handlebars
 
-To run application you must type "node index" in the terminal.
+To run application you must type "npm install" and then "node index" in the terminal.
 Application starts on port 8080.
