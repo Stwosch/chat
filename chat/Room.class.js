@@ -1,8 +1,9 @@
 class Room {
 
-    constructor(name, numberOfUsers) {
+    constructor(name, numberOfUsers, limitOfUsers) {
         this.name = name;
         this.numberOfUsers = numberOfUsers;
+        this.limitOfUsers = limitOfUsers;
     }
 }
 

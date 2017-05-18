@@ -6,7 +6,7 @@ function init(io) {
 
 	const users = [],
 		rooms= [
-			new Room('Lobby', 0)
+			new Room('Lobby', 0, false)
 		];
 
 	io.on('connection', socket => {
@@ -91,12 +91,12 @@ function init(io) {
 
 				if(lobby === undefined) {
 				 	
-					 availableRooms.unshift(new Room('Lobby', 0));
+					 availableRooms.unshift(new Room('Lobby', 0, false));
 				} 
 
 			} else {
 
-				availableRooms.unshift(new Room('Lobby', 0));
+				availableRooms.unshift(new Room('Lobby', 0, false));
 			}
 
 			io.emit('generateRoomsList', availableRooms);
@@ -147,11 +147,13 @@ function init(io) {
 
 		});
 
-		socket.on('createroom', room => {
+		socket.on('createroom', data => {
+			
+			data.room = validDataFromUser(data.room);
 
-			room = validDataFromUser(room);
+			const roomExists = rooms.findIndex(room => room.name === data.room);
 
-			const roomExists = rooms.findIndex(existingRoom => existingRoom.name === room);
+			if(data.numberOfUsers !== false && data.numberOfUsers < 1 || data.numberOfUsers > 255) return;
 
 			if(roomExists !== -1) {
 				
@@ -160,11 +162,13 @@ function init(io) {
 					warning: "This room already exists."	
 				});
 
+				return;
+
 			} else {
-
-				changeRoom(socket, room);
+				rooms.push(new Room(data.room, 0, data.numberOfUsers));
+				changeRoom(socket, data.room);
 			}
-
+			
 		});
 
 		socket.on('changeroom', room => {
@@ -232,6 +236,19 @@ function init(io) {
 
 		if(socket.room === room) return;
 
+		// Check is room full
+
+		const index = rooms.findIndex(existingRoom => existingRoom.name === room);
+
+		if(rooms[index].limitOfUsers && (rooms[index].numberOfUsers >= rooms[index].limitOfUsers)) {
+
+			io.to(socket.id).emit('warning', {
+				time: Date.now(),
+				warning: "This room is full."
+			})
+			return;
+		} 
+
 		// Notify others you left
 
 		socket.broadcast.to(socket.room).emit('status', {
@@ -240,8 +257,6 @@ function init(io) {
 		});
 
 		// Leave, join, save informations
-
-		rooms.push(new Room(room, 0));
 
 		replaceUsersChangeRoom(socket.room, room);
 

@@ -54,6 +54,12 @@
                         <button class="btn btn-default" type="submit">Go</button>
                     </span>
                 </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="createRoom-setUsersLimit"> Set limit of users in room
+                    </label>
+                </div>
+                <input type="number" class="form-control" id="createRoom-usersLimit">
             </form>
         </div>
     </div>
@@ -89,7 +95,12 @@
 <script id="room-list-template" type="text/x-handlebars-template">
     <div class="chat-line">
         <div class="room-name">\{{ name }}</div>
-        <div class="chat-line-time">\{{ number }}</div>
+        <div class="chat-line-time">
+            \{{ number }}
+            \{{#if limit }}
+                / \{{ limit }}
+            \{{/if}}
+        </div>
         <button type="button" class="btn btn-success btn-small pull-right btn-join" id="\{{ name }}">Join</button>
     </div>
 </script>

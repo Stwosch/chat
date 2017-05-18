@@ -14,6 +14,8 @@
         chat = $("#chat"),
         usersList = $('#usersList'),
         roomsList = $('#roomsList'),
+        usersLimit = $('#createRoom-usersLimit'),
+        setUsersLimit = $('#createRoom-setUsersLimit'),
         chatStatusTpl = Handlebars.compile($('#chat-status-template').html()),
         chatMessageTpl = Handlebars.compile($('#chat-message-template').html()),
         chatWarningTpl = Handlebars.compile($('#chat-warning-template').html()),
@@ -21,6 +23,21 @@
         roomListTpl = Handlebars.compile($('#room-list-template').html());
 
     let joined = false;
+    usersLimit.hide();
+
+    setUsersLimit.on('change', () => {
+
+        if(setUsersLimit.is(':checked')) {
+
+            usersLimit.show();
+
+        } else {
+
+            usersLimit.hide();
+
+        }
+
+    });
 
     chatMessage.keypress(e => {
 
@@ -99,17 +116,25 @@
     createRoomForm.on("submit", e => {
 
         e.preventDefault();
+        let numberOfUsers = false, numberOfUsersFlag = true;
 
-        const newRoom = validDataFromUser(newRoomname.val(), 2, 15);
+        const room = validDataFromUser(newRoomname.val(), 2, 15);
 
-        if(newRoom) {
+        if(setUsersLimit.is(':checked')) {
 
-            socket.emit('createroom', newRoom);
+            numberOfUsers = parseInt(usersLimit.val());
+
+            if(!(numberOfUsers > 0 && numberOfUsers < 256)) numberOfUsersFlag = false;
+        }
+
+        if(room && numberOfUsersFlag) {
+
+            socket.emit('createroom', { room, numberOfUsers });
 
         } else {
 
             const html = chatWarningTpl({
-                warning: "You use the wrong amount of characters.",
+                warning: "You entered wrong data.",
                 time: formatTime(Date.now())
             });
 
@@ -118,6 +143,7 @@
         }
 
         newRoomname.val("");
+        usersLimit.val("");
 
     });
 
@@ -190,11 +216,12 @@
 
             html += roomListTpl({
                 name: room.name,
-                number: room.numberOfUsers
+                number: room.numberOfUsers,
+                limit: room.limitOfUsers
             });
 
         });
-
+        
         roomsList.html(html);
 
     });
