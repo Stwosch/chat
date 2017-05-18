@@ -147,56 +147,29 @@ function init(io) {
 
 		});
 
-		socket.on('changeroom', room => {
+		socket.on('createroom', room => {
 
 			room = validDataFromUser(room);
 
-			// Check is it the same room
+			const roomExists = rooms.findIndex(existingRoom => existingRoom.name === room);
 
-			if(socket.room === room) return;
+			if(roomExists !== -1) {
+				
+				io.to(socket.id).emit('warning', {
+					time: Date.now(),
+					warning: "This room already exists."	
+				});
 
-			// Notify others you left
+			} else {
 
-			socket.broadcast.to(socket.room).emit('status', {
-				time: Date.now(),
-				status: socket.nick + " changed the room."	
-			});
+				changeRoom(socket, room);
+			}
 
-			// Leave, join, save informations
+		});
 
-			rooms.push(new Room(room, 0));
+		socket.on('changeroom', room => {
 
-			changeRoom(socket.room, room);
-
-			socket.leave(socket.room);
-			socket.join(room);
-			socket.room = room;
-
-			users[socket.usersIndex].room = room;
-
-			// Notify others you joined
-			
-			socket.broadcast.to(socket.room).emit('status', {
-				time: Date.now(),
-				status: socket.nick + " joined to the room."	
-			});
-
-			// Notify yourself
-
-			io.to(socket.id).emit('status', {
-				time: Date.now(),
-				status: "You changed to the '" + socket.room + "' room."	
-			});
-
-			// Change bilboard
-			
-			io.to(socket.id).emit('changeroom', {
-				room: socket.room
-			});
-
-			// Get rooms list
-
-			io.emit('getRoomsList');
+			changeRoom(socket, room);
 
 		});
 
@@ -246,7 +219,64 @@ function init(io) {
 
 	});
 
-	function changeRoom(from, to) {
+	function validDataFromUser(data) {
+
+		return xss(data);
+	}
+
+	function changeRoom(socket, room) {
+
+		room = validDataFromUser(room);
+
+		// Check is it the same room
+
+		if(socket.room === room) return;
+
+		// Notify others you left
+
+		socket.broadcast.to(socket.room).emit('status', {
+			time: Date.now(),
+			status: socket.nick + " changed the room."	
+		});
+
+		// Leave, join, save informations
+
+		rooms.push(new Room(room, 0));
+
+		replaceUsersChangeRoom(socket.room, room);
+
+		socket.leave(socket.room);
+		socket.join(room);
+		socket.room = room;
+
+		users[socket.usersIndex].room = room;
+
+		// Notify others you joined
+		
+		socket.broadcast.to(socket.room).emit('status', {
+			time: Date.now(),
+			status: socket.nick + " joined to the room."	
+		});
+
+		// Notify yourself
+
+		io.to(socket.id).emit('status', {
+			time: Date.now(),
+			status: "You changed to the '" + socket.room + "' room."	
+		});
+
+		// Change bilboard
+		
+		io.to(socket.id).emit('changeroom', {
+			room: socket.room
+		});
+
+		// Get rooms list
+
+		io.emit('getRoomsList');
+	}
+
+	function replaceUsersChangeRoom(from, to) {
 
 		const indexFrom = rooms.findIndex(room => room.name === from);
 		
@@ -263,11 +293,6 @@ function init(io) {
 		const indexTo = rooms.findIndex(room => room.name === to);
 		rooms[indexTo].numberOfUsers += 1;
 
-	}
-
-	function validDataFromUser(data) {
-
-		return xss(data);
 	}
 
 }

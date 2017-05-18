@@ -104,7 +104,7 @@
 
         if(newRoom) {
 
-            socket.emit('changeroom', newRoom);
+            socket.emit('createroom', newRoom);
 
         } else {
 
