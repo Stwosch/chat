@@ -81,6 +81,14 @@
 </div>
 </script>
 
+<script id="chat-priv-message-template" type="text/x-handlebars-template">
+<div class="chat-line privMessage">
+    <div class="chat-line-time">\{{ time }}</div>
+    <div class="chat-line-nick">\{{ nick }}</div>
+    <div class="chat-line-status">\{{ status }}</div>
+</div>
+</script>
+
 <script id="chat-warning-template" type="text/x-handlebars-template">
 <div class="chat-warning">
     <div class="chat-line-time">\{{ time }}</div>
@@ -89,7 +97,10 @@
 </script>
 
 <script id="user-list-template" type="text/x-handlebars-template">
-    <div class="chat-line">\{{ nick }}</div>
+    <div class="availableUser">
+        \{{ nick }}
+        <button type="button" class="btn btn-default btn-small pull-right btn-priv" id="\{{ nick }}">Priv</button>
+    </div>
 </script>
 
 <script id="room-list-template" type="text/x-handlebars-template">

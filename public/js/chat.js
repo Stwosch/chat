@@ -20,7 +20,8 @@
         chatMessageTpl = Handlebars.compile($('#chat-message-template').html()),
         chatWarningTpl = Handlebars.compile($('#chat-warning-template').html()),
         usersListTpl = Handlebars.compile($('#user-list-template').html()),
-        roomListTpl = Handlebars.compile($('#room-list-template').html());
+        roomListTpl = Handlebars.compile($('#room-list-template').html()),
+        chatPrivMessageTpl = Handlebars.compile($('#chat-priv-message-template').html());
 
     let joined = false;
     usersLimit.hide();
@@ -39,7 +40,7 @@
 
     });
 
-    chatMessage.keypress(e => {
+    chatMessage.on('keypress', e => {
 
         if(e.keyCode != 13) return;
 
@@ -48,6 +49,21 @@
 
     });
 
+    chatMessage.on('keyup', e => {
+
+        if(chatMessage.val()[0] === '@') {
+
+            if(!chatMessage.hasClass('privMessage')) {
+
+                chatMessage.addClass('privMessage');
+            }
+            
+        } else {
+
+            chatMessage.removeClass('privMessage');
+        }
+
+    });
 
     roomsList.on('click', e => {
 
@@ -57,13 +73,22 @@
 
     });
 
+    usersList.on('click', e => {
+
+        if(!e.target.className.includes('btn-priv')) return;
+        
+        chatMessage.addClass('privMessage');
+        chatMessage.val(`@${e.target.id}: `)
+
+    });
+
     joinForm.on("submit", e => {
 
         e.preventDefault();
 
         const nickName = validDataFromUser(nick.val(), 2, 25);
 
-        if(nickName) {
+        if(nickName && nickName.indexOf(':') === -1) {
 
             nick.removeClass("invalid");
             socket.emit('join', nickName, 'Lobby');
@@ -83,7 +108,15 @@
 
         if(!message) return;
 
-        socket.emit('message', message);
+        if(message[0] === '@') {
+
+            socket.emit('privMessage', message);
+
+        } else {
+
+            socket.emit('message', message);
+        }
+
 
         chatMessage.val("");
 
@@ -95,7 +128,7 @@
 
         const newNick = validDataFromUser(newNickname.val(), 2, 15);
 
-        if(newNick) {
+        if(newNick && newNick.indexOf(':') === -1) {
 
             socket.emit('changenick', newNick);
 
@@ -226,10 +259,25 @@
 
     });
 
+    socket.on('privMessage', data => {
+
+        if(!joined) return;
+       
+        const html = chatPrivMessageTpl({
+            status: data.status,
+            nick: data.nick,
+            time: formatTime(data.time)
+        });
+        
+        chatWindow.append(html);
+        scrollToBottom();
+
+    });
+
     socket.on('changeroom', data => currentRoom.text(data.room));
 
     socket.on('generateUsersList', data => {
-        
+
         let html = "";
 
         data.forEach(user => {

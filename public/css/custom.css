@@ -39,6 +39,14 @@
     padding: 10px;
 }
 
+.privMessage {
+    color: #660099;
+}
+
+#message {
+    font-weight: bold;
+}
+
 .smallContainer-list {
     height: 300px;
     overflow-x: hidden;
@@ -61,12 +69,19 @@
     border-bottom: 1px #ccc solid;
 }
 
+.availableUser {
+    padding: 10px 20px;
+    border-bottom: 1px #ccc solid;
+    font-weight: bold;
+    color: #00CC00;
+}
+
 .room-name {
     font-weight: bold;
     display: inline-block;
 }
 
-.btn-join {
+.btn-join, .btn-priv {
     transform: translateY(-7.5px);
 }
 

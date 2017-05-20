@@ -43,11 +43,6 @@ function init(io) {
 			socket.nick = nick;
 			users.push(new User(socket.id, socket.nick, room));
 
-			// Get index from users array
-
-			const usersIndex = users.findIndex(user => user.nick === socket.nick);
-			socket.usersIndex = usersIndex;
-
 			// Joining to chat
 				
 			socket.join(room);
@@ -114,21 +109,23 @@ function init(io) {
 
 			// Remove from users array
 
-			users.splice(socket.usersIndex, 1);
+			const usersIndex = users.findIndex(user => user.nick === socket.nick);
+
+			users.splice(usersIndex, 1);
 
 			// Remove from room array
 
-			const index = rooms.findIndex(room => room.name === socket.room);
+			const roomsIndex = rooms.findIndex(room => room.name === socket.room);
 
-			if(index === undefined || index === -1) return;
+			if(roomsIndex === undefined || roomsIndex === -1) return;
 
-			if(rooms[index].numberOfUsers <= 1 && rooms[index].name !== 'Lobby') {
+			if(rooms[roomsIndex].numberOfUsers <= 1 && rooms[roomsIndex].name !== 'Lobby') {
 
-				rooms.splice(index, 1);
+				rooms.splice(roomsIndex, 1);
 
 			} else {
 
-				rooms[index].numberOfUsers -= 1;
+				rooms[roomsIndex].numberOfUsers -= 1;
 			}
 
 			// Get room list
@@ -144,6 +141,59 @@ function init(io) {
 				nick: socket.nick,
 				status: msg
 			});
+
+		});
+
+		socket.on('privMessage', msg => {
+
+			// Get data
+
+			let cutMsg= msg.split(':'),
+				toWhom = cutMsg[0].substr(1).trim();
+			
+			// Check the data contains message
+
+			if(cutMsg.length < 2) {
+
+				io.to(socket.id).emit('warning', {
+					time: Date.now(),
+					warning: 'You can\'t send message'
+				})
+
+				return;
+			}
+
+			// Get message
+
+			cutMsg.shift();
+			privMsg = cutMsg.join(':').trim();
+
+			// Check is user available
+
+			const index = users.findIndex(user => user.nick === toWhom);
+
+			if(users[index].id === socket.id) return;
+
+			if(index !== -1) {
+
+				const data = {
+					time: Date.now(),
+					nick: socket.nick,
+					status: privMsg
+				};
+
+				io.to(socket.id).emit('privMessage', data);
+				io.to(users[index].id).emit('privMessage', data);
+
+			} else {
+
+				io.to(socket.id).emit('warning', {
+					time: Date.now(),
+					warning: "You can't write messages to not online users."
+				});
+				
+				return;
+			}
 
 		});
 
@@ -202,7 +252,8 @@ function init(io) {
 			const oldNick = socket.nick;
 			socket.nick = newNick;
 
-			users[socket.usersIndex].nick = socket.nick;
+			const usersIndex = users.findIndex(user => user.id === socket.id);
+			users[usersIndex].nick = socket.nick;
 
 			// Notify others
 
@@ -264,7 +315,8 @@ function init(io) {
 		socket.join(room);
 		socket.room = room;
 
-		users[socket.usersIndex].room = room;
+		const usersIndex = users.findIndex(user => user.id === socket.id);
+		users[usersIndex].room = room;
 
 		// Notify others you joined
 		
